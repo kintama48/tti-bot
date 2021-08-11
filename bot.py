@@ -77,7 +77,7 @@ async def on_ready():
             else:
                 await client.get_channel(all_channel_id).send(content=f"@everyone\n{current_last_tweet.full_text}")
 
-        time.sleep(10)
+        time.sleep(15)
 
 if __name__ == "__main__":
     client.run(DISCORD_BOT_TOKEN)
