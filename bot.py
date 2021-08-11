@@ -37,12 +37,14 @@ async def on_ready():
     last_tweet = '0'
 
     while True:
+        flag = False
         current_last_tweet = api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
         if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
             last_tweet = current_last_tweet.id_str
             embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT **{current_last_tweet.full_text.replace('#alert', '').strip()}")
 
             if "#alert" in current_last_tweet.full_text or "#ALERT" in current_last_tweet.full_text or "#Alert" in current_last_tweet.full_text:
+                flag = True
                 if "#alert" in current_last_tweet.full_text:
                     current_last_tweet.full_text = current_last_tweet.full_text.replace("#alert", "").strip()
                     embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{current_last_tweet.full_text}")
@@ -74,6 +76,8 @@ async def on_ready():
                     embed = discord.Embed(color=0x1dfc00, description=f"🔔 **ALERT - BOUGHT - **{current_last_tweet.full_text}")
                     await client.get_channel(alert_channel_id).send(content="@everyone", embed=embed)
             time.sleep(2)
+            if flag:
+                await client.get_channel(all_channel_id).send(content="@everyone", embed=embed)
             await client.get_channel(all_channel_id).send(content=f"@everyone\n{current_last_tweet.full_text}")
 
         time.sleep(10)
