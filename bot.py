@@ -44,7 +44,7 @@ def alert_found(text):
         text = text.replace("Bought", "").strip()
         text = text.replace("BOUGHT", "").strip()
         return discord.Embed(color=0x1dfc00, description=f"🔔 **ALERT - BOUGHT - **{text}")
-    return discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT **{text}")
+    return discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{text}")
 
 
 async def send_to_alert(embed):
