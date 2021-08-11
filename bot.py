@@ -26,8 +26,43 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 user = api.get_user(screen_name=USER_TO_SNITCH)
 
 client = discord.Client()
-discord.AllowedMentions(everyone=True)
 
+
+def alert_found(text):
+    text = text.replace("#alert", "").strip()
+    text = text.replace("#Alert", "").strip()
+    text = text.replace("#ALERT", "").strip()
+    print("Inside alert_found")
+    if "SOLD" in text or "sold" in text or "Sold" in text:
+        text = text.replace("sold", "").strip()
+        text = text.replace("Sold", "").strip()
+        text = text.replace("SOLD", "").strip()
+        return discord.Embed(color=0xff0a0a, description=f"🔔 **ALERT - SOLD - **{text}")
+
+    if "BOUGHT" in text or "bought" in text or "Bought" in text:
+        text = text.replace("bought", "").strip()
+        text = text.replace("Bought", "").strip()
+        text = text.replace("BOUGHT", "").strip()
+        return discord.Embed(color=0x1dfc00, description=f"🔔 **ALERT - BOUGHT - **{text}")
+    return discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT **{text}")
+
+
+async def send_to_alert(embed):
+    print("Inside send_to_alert")
+    await client.get_channel(alert_channel_id).send(content="@everyone", embed=embed)
+    return
+
+
+async def send_to_all(embed):
+    print("Inside send_to_all")
+    await client.get_channel(all_channel_id).send(content="@everyone", embed=embed)
+    return
+
+
+async def send_to_one(text):
+    print("Inside send to one")
+    await client.get_channel(all_channel_id).send(content=f"@everyone\n{text}")
+    return
 
 @client.event
 async def on_ready():
@@ -37,55 +72,19 @@ async def on_ready():
     last_tweet = '0'
 
     while True:
-        flag = False
-        current_last_tweet = api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
+        current_last_tweet = \
+            api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
         if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
             last_tweet = current_last_tweet.id_str
-            embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT **{current_last_tweet.full_text.replace('#alert', '').strip()}")
-
-            if "#alert" in current_last_tweet.full_text or "#ALERT" in current_last_tweet.full_text or "#Alert" in current_last_tweet.full_text:
-                flag = True
-                if "#alert" in current_last_tweet.full_text:
-                    current_last_tweet.full_text = current_last_tweet.full_text.replace("#alert", "").strip()
-                    embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{current_last_tweet.full_text}")
-                elif "#Alert" in current_last_tweet.full_text:
-                    current_last_tweet.full_text = current_last_tweet.full_text.replace("#Alert", "").strip()
-                    embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{current_last_tweet.full_text}")
-                else:
-                    current_last_tweet.full_text = current_last_tweet.full_text.replace("#ALERT", "").strip()
-                    embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{current_last_tweet.full_text}")
-
-                if "SOLD" in current_last_tweet.full_text or "sold" in current_last_tweet.full_text or "Sold" in current_last_tweet.full_text:
-                    if "sold" in current_last_tweet.full_text:
-                        current_last_tweet.full_text = current_last_tweet.full_text.replace("sold", "").strip()
-                    elif "Sold" in current_last_tweet.full_text:
-                        current_last_tweet.full_text = current_last_tweet.full_text.replace("Sold", "").strip()
-                    else:
-                        current_last_tweet.full_text = current_last_tweet.full_text.replace("SOLD", "").strip()
-                    embed = discord.Embed(color=0xff0a0a, description=f"🔔 **ALERT - SOLD - **{current_last_tweet.full_text}")
-                    await client.get_channel(alert_channel_id).send(content="@everyone", embed=embed)
-
-                    
-                elif "BOUGHT" in current_last_tweet.full_text or "bought" in current_last_tweet.full_text or "Bought" in current_last_tweet.full_text:
-                    if "bought" in current_last_tweet.full_text:
-                        current_last_tweet.full_text = current_last_tweet.full_text.replace("bought", "").strip()
-                    elif "Bought" in current_last_tweet.full_text:
-                        current_last_tweet.full_text = current_last_tweet.full_text.replace("Bought", "").strip()
-                    else:
-                        current_last_tweet.full_text = current_last_tweet.full_text.replace("BOUGHT", "").strip()
-                    embed = discord.Embed(color=0x1dfc00, description=f"🔔 **ALERT - BOUGHT - **{current_last_tweet.full_text}")
-                    await client.get_channel(alert_channel_id).send(content="@everyone", embed=embed)
-            time.sleep(2)
-            if flag:
-                await client.get_channel(all_channel_id).send(content="@everyone", embed=embed)
-            await client.get_channel(all_channel_id).send(content=f"@everyone\n{current_last_tweet.full_text}")
-
+            text = current_last_tweet.full_text
+            if "#alert" in text or "#Alert" in text or "#ALERT" in text:
+                print("Inside if on_ready")
+                embed = alert_found(text)
+                await send_to_alert(embed)
+                await send_to_all(embed)
+            else:
+                print("Inside else on_ready")
+                await send_to_one(current_last_tweet.full_text)
         time.sleep(10)
 
-if __name__ == "__main__":
-    client.run(DISCORD_BOT_TOKEN)
-
-
-# This URL can be used to add the bot to your server. Copy and paste the URL into your browser,
-# choose a server to invite the bot to, and click “Authorize”. You need manage server permissions to do so.
-# https://discord.com/api/oauth2/authorize?client_id=874182679602561095&permissions=8&scope=bot
+client.run(DISCORD_BOT_TOKEN)
