@@ -45,13 +45,13 @@ async def on_ready():
             if "#alert" in current_last_tweet.full_text or "#ALERT" in current_last_tweet.full_text or "#Alert" in current_last_tweet.full_text:
                 if "#alert" in current_last_tweet.full_text:
                     current_last_tweet.full_text = current_last_tweet.full_text.replace("#alert", "").strip()
-                    embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT **{current_last_tweet.full_text}")
+                    embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{current_last_tweet.full_text}")
                 elif "#Alert" in current_last_tweet.full_text:
                     current_last_tweet.full_text = current_last_tweet.full_text.replace("#Alert", "").strip()
-                    embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT **{current_last_tweet.full_text}")
+                    embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{current_last_tweet.full_text}")
                 else:
                     current_last_tweet.full_text = current_last_tweet.full_text.replace("#ALERT", "").strip()
-                    embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT **{current_last_tweet.full_text}")
+                    embed = discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{current_last_tweet.full_text}")
 
                 if "SOLD" in current_last_tweet.full_text or "sold" in current_last_tweet.full_text or "Sold" in current_last_tweet.full_text:
                     if "sold" in current_last_tweet.full_text:
