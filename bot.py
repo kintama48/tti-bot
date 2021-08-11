@@ -1,7 +1,4 @@
-from discord.ext import commands, tasks
-from discord.ext.commands import Bot
 import json
-import random
 import sys
 import tweepy
 import os
@@ -13,62 +10,6 @@ if not os.path.isfile("config.json"):
 else:
     with open("config.json") as file:
         config = json.load(file)
-
-# intents = discord.Intents.default()
-# bot = Bot(command_prefix=config["bot_prefix"], intents=intents)
-#
-#
-# @tasks.loop(minutes=1.0)
-# async def status_task():  # to set a bot's status
-#     statuses = ["with you!", "with Dream of the Endless!", f"{config['bot_prefix']}help", "with humans!"]
-#     await bot.change_presence(activity=discord.Game(random.choice(statuses)))
-#
-#
-# @bot.event
-# async def on_message(message):  # executed when a message is sent by someone
-#     if message.author == bot.user or message.author.bot:
-#         return
-#     await bot.process_commands(message)
-#
-#
-# @bot.event
-# async def on_command_completion(ctx):  # command executed successfully
-#     fullCommandName = ctx.command.qualified_name
-#     split = fullCommandName.split(" ")
-#     executedCommand = str(split[0])
-#     print(
-#         f"Executed {executedCommand} command in {ctx.guild.name} (ID: {ctx.message.guild.id}) by {ctx.message.author} (ID: {ctx.message.author.id})")
-#
-#
-# @bot.event
-# async def on_command_error(context, error):
-#     if isinstance(error, commands.CommandOnCooldown):
-#         minutes, seconds = divmod(error.retry_after, 60)
-#         hours, minutes = divmod(minutes, 60)
-#         hours = hours % 24
-#         embed = discord.Embed(
-#             title="Please slow down!",
-#             description=f"You can use this command again in {f'{round(hours)} hours' if round(hours) > 0 else ''} {f'{round(minutes)} minutes' if round(minutes) > 0 else ''} {f'{round(seconds)} seconds' if round(seconds) > 0 else ''}.",
-#             color=0x8233FF
-#         )
-#         await context.send(embed=embed)
-#     elif isinstance(error, commands.MissingPermissions):
-#         embed = discord.Embed(
-#             title="Error!",
-#             description="You are missing the permission `" + ", ".join(
-#                 error.missing_perms) + "` to execute this command!",
-#             color=0xFF3387
-#         )
-#         await context.send(embed=embed)
-#     elif isinstance(error, commands.MissingRequiredArgument):
-#         embed = discord.Embed(
-#             title="Error!",
-#             description=str(error).capitalize(),
-#             color=0xFF5733
-#         )
-#         await context.send(embed=embed)
-#     raise error
-#
 
 API_KEY = config["API_key"]
 API_SECRET = config["API_secret"]
