@@ -3,6 +3,7 @@ import sys
 import tweepy
 import os
 import discord
+import asyncio
 import time
 
 if not os.path.isfile("config.json"):
@@ -44,7 +45,7 @@ def alert_found(text):
         text = text.replace("Bought", "").strip()
         text = text.replace("BOUGHT", "").strip()
         return discord.Embed(color=0x1dfc00, description=f"🔔 **ALERT - BOUGHT - **{text}")
-    return discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{text}")
+    return discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT **{text}")
 
 
 async def send_to_alert(embed):
@@ -80,8 +81,7 @@ async def on_ready():
             if "#alert" in text or "#Alert" in text or "#ALERT" in text:
                 print("Inside if on_ready")
                 embed = alert_found(text)
-                await send_to_alert(embed)
-                await send_to_all(embed)
+                await asyncio.gather(send_to_alert(embed), send_to_all(embed))
             else:
                 print("Inside else on_ready")
                 await send_to_one(current_last_tweet.full_text)
