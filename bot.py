@@ -60,9 +60,10 @@ async def on_ready():
                         current_last_tweet.full_text = current_last_tweet.full_text.replace("Sold", "").strip()
                     else:
                         current_last_tweet.full_text = current_last_tweet.full_text.replace("SOLD", "").strip()
-
                     embed = discord.Embed(color=0xff0a0a, description=f"🔔 **ALERT - SOLD - **{current_last_tweet.full_text}")
+                    await client.get_channel(alert_channel_id).send(content="@everyone", embed=embed)
 
+                    
                 elif "BOUGHT" in current_last_tweet.full_text or "bought" in current_last_tweet.full_text or "Bought" in current_last_tweet.full_text:
                     if "bought" in current_last_tweet.full_text:
                         current_last_tweet.full_text = current_last_tweet.full_text.replace("bought", "").strip()
@@ -71,13 +72,11 @@ async def on_ready():
                     else:
                         current_last_tweet.full_text = current_last_tweet.full_text.replace("BOUGHT", "").strip()
                     embed = discord.Embed(color=0x1dfc00, description=f"🔔 **ALERT - BOUGHT - **{current_last_tweet.full_text}")
+                    await client.get_channel(alert_channel_id).send(content="@everyone", embed=embed)
+            time.sleep(2)
+            await client.get_channel(all_channel_id).send(content=f"@everyone\n{current_last_tweet.full_text}")
 
-                await client.get_channel(alert_channel_id).send(content="@everyone", embed=embed)
-                await client.get_channel(all_channel_id).send(content="@everyone", embed=embed)
-            else:
-                await client.get_channel(all_channel_id).send(content=f"@everyone\n{current_last_tweet.full_text}")
-
-        time.sleep(15)
+        time.sleep(10)
 
 if __name__ == "__main__":
     client.run(DISCORD_BOT_TOKEN)
