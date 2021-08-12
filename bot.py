@@ -48,19 +48,19 @@ def alert_found(text):
     return discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{text}")
 
 
-async def send_to_alert(embed):
+async def send_to_alert_channel(embed):
     print("Inside send_to_alert")
     await client.get_channel(alert_channel_id).send(content="@everyone", embed=embed)
     return
 
 
-async def send_to_all(embed):
+async def send_to_all_channel(embed):
     print("Inside send_to_all")
     await client.get_channel(all_channel_id).send(content="@everyone", embed=embed)
     return
 
 
-async def send_to_one(text):
+async def send_to_one_channel(text):
     print("Inside send to one")
     await client.get_channel(all_channel_id).send(content=f"@everyone\n{text}")
     return
@@ -83,12 +83,10 @@ async def on_ready():
                 if "#alert" in text or "#Alert" in text or "#ALERT" in text:
                     print("Inside if on_ready")
                     embed = alert_found(text)
-                    # await send_to_alert(embed)
-                    # await send_to_all(embed)
-                    await asyncio.gather(send_to_alert(embed), send_to_all(embed))
+                    await asyncio.gather(send_to_alert_channel(embed), send_to_all_channel(embed))
                 else:
                     print("Inside else on_ready")
-                    await send_to_one(current_last_tweet.full_text)
+                    await send_to_one_channel(current_last_tweet.full_text)
             time.sleep(10)
         except IndexError:
             await client.get_channel(all_channel_id).send(embed=discord.Embed(color=0xff0a0a, description="**ERROR: User timeline empty. Kindly tweet something within 40 seconds.\nThe bot will try to wake up again in 40 seconds.**"))
