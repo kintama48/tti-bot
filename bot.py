@@ -77,7 +77,6 @@ async def on_ready():
                 not current_last_tweet.full_text.startswith('RT')):
             last_tweet = current_last_tweet.id_str
             text = current_last_tweet.full_text
-            print(text)
             if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
                 if "#alert" in text or "#Alert" in text or "#ALERT" in text:
                     embed = alert_found(text)
@@ -99,9 +98,8 @@ async def on_ready():
                 text = text.replace("#CHART", "").strip()
                 if text == "":
                     text = " "
-                media_embed = discord.Embed(color=0xffd500, description=f"@everyone\n**{text}**").set_image(
-                    url=media_link)
-                await asyncio.gather(client.get_channel(charts_channel_id).send(embed=media_embed))
+                media_embed = discord.Embed(color=0xffd500, description=f"**{text}**").set_image(url=media_link)
+                await asyncio.gather(client.get_channel(charts_channel_id).send(content="@everyone", embed=media_embed))
 
         time.sleep(10)
 
