@@ -20,6 +20,7 @@ USER_TO_SNITCH = config["user_handle"]
 DISCORD_BOT_TOKEN = config["token"]
 alert_channel_id = config["alert_channel_id"]
 all_channel_id = config["all_channel_id"]
+charts_channel_id = config["charts_channel_id"]
 
 auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
 auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
@@ -65,6 +66,7 @@ async def send_to_one(text):
     await client.get_channel(all_channel_id).send(content=f"@everyone\n{text}")
     return
 
+
 @client.event
 async def on_ready():
     print('Logged in as ' + client.user.name)
@@ -78,15 +80,37 @@ async def on_ready():
                 not current_last_tweet.full_text.startswith('RT')):
             last_tweet = current_last_tweet.id_str
             text = current_last_tweet.full_text
-            if "#alert" in text or "#Alert" in text or "#ALERT" in text:
-                print("Inside if on_ready")
-                embed = alert_found(text)
-                # await send_to_alert(embed)
-                # await send_to_all(embed)
-                await asyncio.gather(send_to_alert(embed), send_to_all(embed))
+            if "#chart" not in text or "#CHART" not in text or "#Chart" not in text:
+                if "#alert" in text or "#Alert" in text or "#ALERT" in text:
+                    print("Inside if on_ready")
+                    embed = alert_found(text)
+                    # await send_to_alert(embed)
+                    # await send_to_all(embed)
+                    await asyncio.gather(send_to_alert(embed), send_to_all(embed))
+                else:
+                    print("Inside else on_ready")
+                    await asyncio.gather(send_to_one(current_last_tweet.full_text))
             else:
-                print("Inside else on_ready")
-                await send_to_one(current_last_tweet.full_text)
+                media_link = current_last_tweet.extended_entities["media"][0]["media_url_https"]
+                text = current_last_tweet.full_text.split()
+                text.pop()
+                text = " ".join(text)
+                if "#Charts" in text:
+                    text = text.replace("#Charts", "").strip()
+                elif "#CHARTS" in text:
+                    text = text.replace("#CHARTS", "").strip()
+                elif "#charts" in text:
+                    text = text.replace("#charts", "").strip()
+                elif "#chart" in text:
+                    text = text.replace("#chart", "").strip()
+                elif "#Chart" in text:
+                    text = text.replace("#Chart", "").strip()
+                elif "#CHART" in text:
+                    text = text.replace("#CHART", "").strip()
+
+                media_embed = discord.Embed(color=0xffd500, description=f"@everyone\n**{text}**").set_image(
+                    url=media_link)
+                await asyncio.gather(client.get_channel(charts_channel_id).send(embed=media_embed))
         time.sleep(10)
 
 client.run(DISCORD_BOT_TOKEN)
