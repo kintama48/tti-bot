@@ -5,7 +5,7 @@ import os
 import discord
 import asyncio
 import time
-from discord.ext.commands import  Bot
+from discord.ext.commands import Bot
 
 if not os.path.isfile("config.json"):
     sys.exit("'config.json' not found! Add it and try again.")
@@ -66,22 +66,6 @@ async def send_to_one(text):
     return
 
 
-async def get_last_msg_content(channel_id: int):
-    channel = client.get_channel(channel_id)
-    last_message = (await channel.history(limit=1).flatten())[0]
-    try:
-        if not last_message.embeds and not last_message.embeds[0].image.url:
-            content = last_message.content.replace("@everyone", "").strip()
-        elif last_message.embeds[0].image.url:
-            content = last_message.embeds[0].image.url
-        else:
-            content = last_message.embeds[0].description.replace("🔔 **ALERT - BOUGHT**", "").replace("🔔 **ALERT - **", "").replace("🔔 **ALERT - SOLD**", "").strip()
-        return content
-    except IndexError:
-        content = last_message.content.replace("@everyone", "").strip()
-        return content
-
-
 @client.event
 async def on_ready():
     print('Logged in as ' + client.user.name)
@@ -90,10 +74,13 @@ async def on_ready():
     last_tweet = config["last_tweet_id"]
 
     while True:
-        current_last_tweet = api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
+        current_last_tweet = \
+            api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
         if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
             config["last_tweet_id"] = current_last_tweet.id_str
             last_tweet = config["last_tweet_id"]
+            with open("config.json", "w") as outfile:
+                json.dump(config, outfile)
             text = current_last_tweet.full_text
             if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
                 if "#alert" in text or "#Alert" in text or "#ALERT" in text:
