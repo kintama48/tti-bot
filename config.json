@@ -1,17 +1,15 @@
 {
   "bot_prefix": "!",
-  "token": "ODc0NTY0NTkwMjIxMDI1MzIw.YRIzvg.xEoLhts0pivYCC0r8s0nCiTy4cc",
-  "application_id": "874564590221025320",
-  "API_key": "kDZ4RhA1oVhN3H9FLQKcaJI3q",
-  "API_secret": "BFGQfzJPSBIZngLSLHC85roEJB1yx4CunIF05LxQO0ZiYxLBHq",
-  "access_key": "1424807485228081158-UjYPsJOTQV3TWCFuvnGx4Fuue0uzQD",
-  "access_secret": "X6KUaxyqIgymlK6jVleP4wT763pENwTISZzjLIc4jCzQW",
-  "user_handle": "TradingTimePro",
-  "permission_integer": 259846043712,
-  "alert_channel_id": 866474434226683985,
-  "all_channel_id": 865442972605612076,
-  "charts_channel_id": 866484028923838534,
-  "bearer_token": "AAAAAAAAAAAAAAAAAAAAAFoSSgEAAAAA2awkZtmkUuYf%2F%2B2O0K5PrUATjwk%3DdhEHUrSo5hOOfLTIhJtemqKPt3fsRTMUd2evy7WnF78JkvvPt8",
-  "last_tweet_id": 0
+ "token": "ODc0NTY0NTkwMjIxMDI1MzIw.YRIzvg.xEoLhts0pivYCC0r8s0nCiTy4cc",
+ "application_id": "874564590221025320",
+ "API_key": "kDZ4RhA1oVhN3H9FLQKcaJI3q",
+ "API_secret": "BFGQfzJPSBIZngLSLHC85roEJB1yx4CunIF05LxQO0ZiYxLBHq",
+ "access_key": "1424807485228081158-UjYPsJOTQV3TWCFuvnGx4Fuue0uzQD",
+ "access_secret": "X6KUaxyqIgymlK6jVleP4wT763pENwTISZzjLIc4jCzQW",
+ "user_handle": "TradingTimePro", "permission_integer": 259846043712,
+ "alert_channel_id": 866474434226683985,
+ "all_channel_id": 865442972605612076,
+ "charts_channel_id": 866484028923838534,
+ "bearer_token": "AAAAAAAAAAAAAAAAAAAAAFoSSgEAAAAA2awkZtmkUuYf%2F%2B2O0K5PrUATjwk%3DdhEHUrSo5hOOfLTIhJtemqKPt3fsRTMUd2evy7WnF78JkvvPt8",
+ "last_tweet_id": "1426273132067893252"
 }
-
