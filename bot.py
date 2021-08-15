@@ -5,7 +5,6 @@ import os
 import discord
 import asyncio
 import time
-from discord.ext.commands import Bot
 
 if not os.path.isfile("config.json"):
     sys.exit("'config.json' not found! Add it and try again.")
@@ -29,8 +28,6 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 user = api.get_user(screen_name=USER_TO_SNITCH)
 
 client = discord.Client()
-intents = discord.Intents.default()
-bot = Bot(command_prefix=config["bot_prefix"], intents=intents)
 
 
 def alert_found(text):
@@ -66,6 +63,22 @@ async def send_to_one(text):
     return
 
 
+# async def get_last_msg_content(channel_id: int):
+#     channel = client.get_channel(channel_id)
+#     last_message = (await channel.history(limit=1).flatten())[0]
+#     try:
+#         if not last_message.embeds and not last_message.embeds[0].image.url:
+#             content = last_message.content.replace("@everyone", "").strip()
+#         elif last_message.embeds[0].image.url:
+#             content = last_message.embeds[0].image.url
+#         else:
+#             content = last_message.embeds[0].description.replace("🔔 **ALERT - BOUGHT**", "").replace("🔔 **ALERT - **", "").replace("🔔 **ALERT - SOLD**", "").strip()
+#         return content
+#     except IndexError:
+#         content = last_message.content.replace("@everyone", "").strip()
+#         return content
+
+
 @client.event
 async def on_ready():
     print('Logged in as ' + client.user.name)
@@ -74,35 +87,46 @@ async def on_ready():
     last_tweet = config["last_tweet_id"]
 
     while True:
-        current_last_tweet = \
-            api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
-        if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
-            config["last_tweet_id"] = current_last_tweet.id_str
-            last_tweet = config["last_tweet_id"]
+        try:
+            if config["last_tweet_id"] != "0":
+                print("if config")
+                current_last_tweet = api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
+            if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
+                print("if try")
+                config["last_tweet_id"] = current_last_tweet.id_str
+                last_tweet = config["last_tweet_id"]
+                with open("config.json", "w") as outfile:
+                    json.dump(config, outfile)
+                text = current_last_tweet.full_text
+                if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
+                    print("if chart")
+                    if "#alert" in text or "#Alert" in text or "#ALERT" in text:
+                        embed = alert_found(text)
+                        await asyncio.gather(send_to_alert(embed), send_to_all(embed))
+                    else:
+                        await asyncio.gather(send_to_one(current_last_tweet.full_text))
+                else:
+                    media_link = current_last_tweet.extended_entities["media"][0]["media_url_https"]
+                    text = current_last_tweet.full_text.split()
+                    text.pop()
+                    text = " ".join(text)
+                    text = text.replace("#Charts", "").strip()
+                    text = text.replace("#CHARTS", "").strip()
+                    text = text.replace("#charts", "").strip()
+                    text = text.replace("#chart", "").strip()
+                    text = text.replace("#Chart", "").strip()
+                    text = text.replace("#CHART", "").strip()
+                    if text == "":
+                        text = " "
+                    media_embed = discord.Embed(color=0xffd500, description=f"**{text}**").set_image(url=media_link)
+                    await asyncio.gather(client.get_channel(charts_channel_id).send(content="@everyone", embed=media_embed))
+                    print("else")
+
+        except ValueError:
+            config["last_tweet_id"] = "0"
             with open("config.json", "w") as outfile:
                 json.dump(config, outfile)
-            text = current_last_tweet.full_text
-            if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
-                if "#alert" in text or "#Alert" in text or "#ALERT" in text:
-                    embed = alert_found(text)
-                    await asyncio.gather(send_to_alert(embed), send_to_all(embed))
-                else:
-                    await asyncio.gather(send_to_one(current_last_tweet.full_text))
-            else:
-                media_link = current_last_tweet.extended_entities["media"][0]["media_url_https"]
-                text = current_last_tweet.full_text.split()
-                text.pop()
-                text = " ".join(text)
-                text = text.replace("#Charts", "").strip()
-                text = text.replace("#CHARTS", "").strip()
-                text = text.replace("#charts", "").strip()
-                text = text.replace("#chart", "").strip()
-                text = text.replace("#Chart", "").strip()
-                text = text.replace("#CHART", "").strip()
-                if text == "":
-                    text = " "
-                media_embed = discord.Embed(color=0xffd500, description=f"**{text}**").set_image(url=media_link)
-                await asyncio.gather(client.get_channel(charts_channel_id).send(content="@everyone", embed=media_embed))
+        print("sleep\n--------------------------------------\n")
         time.sleep(10)
 
 
