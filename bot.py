@@ -87,45 +87,37 @@ async def on_ready():
     last_tweet = config["last_tweet_id"]
 
     while True:
-        try:
-            if config["last_tweet_id"] != "0":
-                current_last_tweet = api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
-            else:
-                current_last_tweet = config["last_tweet_id"]
-            if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
-                config["last_tweet_id"] = current_last_tweet.id_str
-                last_tweet = config["last_tweet_id"]
-                with open("config.json", "w") as outfile:
-                    json.dump(config, outfile)
-                text = current_last_tweet.full_text
-                if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
-                    if "#alert" in text or "#Alert" in text or "#ALERT" in text:
-                        embed = alert_found(text)
-                        await asyncio.gather(send_to_alert(embed), send_to_all(embed))
-                    else:
-                        await asyncio.gather(send_to_one(current_last_tweet.full_text))
-                else:
-                    media_link = current_last_tweet.extended_entities["media"][0]["media_url_https"]
-                    text = current_last_tweet.full_text.split()
-                    text.pop()
-                    text = " ".join(text)
-                    text = text.replace("#Charts", "").strip()
-                    text = text.replace("#CHARTS", "").strip()
-                    text = text.replace("#charts", "").strip()
-                    text = text.replace("#chart", "").strip()
-                    text = text.replace("#Chart", "").strip()
-                    text = text.replace("#CHART", "").strip()
-                    if text == "":
-                        text = " "
-                    media_embed = discord.Embed(color=0xffd500, description=f"**{text}**").set_image(url=media_link)
-                    await asyncio.gather(client.get_channel(charts_channel_id).send(content="@everyone", embed=media_embed))
-                time.sleep(10)
-        except ValueError:
-            config["last_tweet_id"] = "0"
+        current_last_tweet = \
+            api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
+        if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
+            config["last_tweet_id"] = current_last_tweet.id_str
             last_tweet = config["last_tweet_id"]
             with open("config.json", "w") as outfile:
                 json.dump(config, outfile)
-            time.sleep(30)
+                outfile.close()
+            text = current_last_tweet.full_text
+            if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
+                if "#alert" in text or "#Alert" in text or "#ALERT" in text:
+                    embed = alert_found(text)
+                    await asyncio.gather(send_to_alert(embed), send_to_all(embed))
+                else:
+                    await asyncio.gather(send_to_one(current_last_tweet.full_text))
+            else:
+                media_link = current_last_tweet.extended_entities["media"][0]["media_url_https"]
+                text = current_last_tweet.full_text.split()
+                text.pop()
+                text = " ".join(text)
+                text = text.replace("#Charts", "").strip()
+                text = text.replace("#CHARTS", "").strip()
+                text = text.replace("#charts", "").strip()
+                text = text.replace("#chart", "").strip()
+                text = text.replace("#Chart", "").strip()
+                text = text.replace("#CHART", "").strip()
+                if text == "":
+                    text = " "
+                media_embed = discord.Embed(color=0xffd500, description=f"**{text}**").set_image(url=media_link)
+                await asyncio.gather(client.get_channel(charts_channel_id).send(content="@everyone", embed=media_embed))
+        time.sleep(10)
 
 
 client.run(DISCORD_BOT_TOKEN)
