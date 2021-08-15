@@ -90,6 +90,8 @@ async def on_ready():
         try:
             if config["last_tweet_id"] != "0":
                 current_last_tweet = api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
+            else:
+                current_last_tweet = config["last_tweet_id"]
             if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
                 config["last_tweet_id"] = current_last_tweet.id_str
                 last_tweet = config["last_tweet_id"]
