@@ -78,6 +78,23 @@ async def send_to_one(text):
 #         content = last_message.content.replace("@everyone", "").strip()
 #         return content
 
+async def chart_found(current_last_tweet):
+    media_link = current_last_tweet.extended_entities["media"][0]["media_url_https"]
+    text = current_last_tweet.full_text.split()
+    text.pop()
+    text = " ".join(text)
+    text = text.replace("#Charts", "").strip()
+    text = text.replace("#CHARTS", "").strip()
+    text = text.replace("#charts", "").strip()
+    text = text.replace("#chart", "").strip()
+    text = text.replace("#Chart", "").strip()
+    text = text.replace("#CHART", "").strip()
+    if text == "":
+        text = " "
+    media_embed = discord.Embed(color=0xffd500, description=f"**{text}**").set_image(url=media_link)
+    await client.get_channel(charts_channel_id).send(content="@everyone", embed=media_embed)
+    return
+
 
 @client.event
 async def on_ready():
@@ -103,20 +120,7 @@ async def on_ready():
                 else:
                     await asyncio.gather(send_to_one(current_last_tweet.full_text))
             else:
-                media_link = current_last_tweet.extended_entities["media"][0]["media_url_https"]
-                text = current_last_tweet.full_text.split()
-                text.pop()
-                text = " ".join(text)
-                text = text.replace("#Charts", "").strip()
-                text = text.replace("#CHARTS", "").strip()
-                text = text.replace("#charts", "").strip()
-                text = text.replace("#chart", "").strip()
-                text = text.replace("#Chart", "").strip()
-                text = text.replace("#CHART", "").strip()
-                if text == "":
-                    text = " "
-                media_embed = discord.Embed(color=0xffd500, description=f"**{text}**").set_image(url=media_link)
-                await asyncio.gather(client.get_channel(charts_channel_id).send(content="@everyone", embed=media_embed))
+                await asyncio.gather(chart_found(current_last_tweet))
         time.sleep(10)
 
 
