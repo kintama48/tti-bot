@@ -89,17 +89,14 @@ async def on_ready():
     while True:
         try:
             if config["last_tweet_id"] != "0":
-                print("if config")
                 current_last_tweet = api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
             if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
-                print("if try")
                 config["last_tweet_id"] = current_last_tweet.id_str
                 last_tweet = config["last_tweet_id"]
                 with open("config.json", "w") as outfile:
                     json.dump(config, outfile)
                 text = current_last_tweet.full_text
                 if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
-                    print("if chart")
                     if "#alert" in text or "#Alert" in text or "#ALERT" in text:
                         embed = alert_found(text)
                         await asyncio.gather(send_to_alert(embed), send_to_all(embed))
@@ -120,14 +117,13 @@ async def on_ready():
                         text = " "
                     media_embed = discord.Embed(color=0xffd500, description=f"**{text}**").set_image(url=media_link)
                     await asyncio.gather(client.get_channel(charts_channel_id).send(content="@everyone", embed=media_embed))
-                    print("else")
-
+                time.sleep(10)
         except ValueError:
             config["last_tweet_id"] = "0"
+            last_tweet = config["last_tweet_id"]
             with open("config.json", "w") as outfile:
                 json.dump(config, outfile)
-        print("sleep\n--------------------------------------\n")
-        time.sleep(10)
+            time.sleep(30)
 
 
 client.run(DISCORD_BOT_TOKEN)
