@@ -5,6 +5,7 @@ import os
 import discord
 import asyncio
 import time
+import psycopg2
 
 if not os.path.isfile("config.json"):
     sys.exit("'config.json' not found! Add it and try again.")
@@ -63,20 +64,27 @@ async def send_to_one(text):
     return
 
 
-# async def get_last_msg_content(channel_id: int):
-#     channel = client.get_channel(channel_id)
-#     last_message = (await channel.history(limit=1).flatten())[0]
-#     try:
-#         if not last_message.embeds and not last_message.embeds[0].image.url:
-#             content = last_message.content.replace("@everyone", "").strip()
-#         elif last_message.embeds[0].image.url:
-#             content = last_message.embeds[0].image.url
-#         else:
-#             content = last_message.embeds[0].description.replace("🔔 **ALERT - BOUGHT**", "").replace("🔔 **ALERT - **", "").replace("🔔 **ALERT - SOLD**", "").strip()
-#         return content
-#     except IndexError:
-#         content = last_message.content.replace("@everyone", "").strip()
-#         return content
+def get_last_tweet_id():
+    db = psycopg2.connect(database="d9d007debv37l9", user="mnfhmnmwqklmna",
+                          password="807464a720386343baf66c7fb867987a2b79b587f0bd141209e762ea9171ede2",
+                          host="ec2-44-194-112-166.compute-1.amazonaws.com", port=5432)
+    cur = db.cursor()
+    cur.execute("SELECT * FROM public.last_tweet;")
+    return cur.fetchone[0]
+
+
+def set_last_tweet_id(tweet_id):
+    db = psycopg2.connect(database="d9d007debv37l9", user="mnfhmnmwqklmna",
+                          password="807464a720386343baf66c7fb867987a2b79b587f0bd141209e762ea9171ede2",
+                          host="ec2-44-194-112-166.compute-1.amazonaws.com", port=5432)
+    cur = db.cursor()
+    cur.execute(f"UPDATE public.last_tweet SET tweet_id={tweet_id.strip()};")
+    db.commit()
+    cur.close()
+    db.close()
+    rtn = get_last_tweet_id()
+    return rtn
+
 
 async def chart_found(current_last_tweet):
     media_link = current_last_tweet.extended_entities["media"][0]["media_url_https"]
@@ -101,14 +109,12 @@ async def on_ready():
     print('Logged in as ' + client.user.name)
     print("Starting to fetch the last tweet from the " + USER_TO_SNITCH + " account")
 
-    last_tweet = config["last_tweet_id"]
+    last_tweet = get_last_tweet_id()
 
     while True:
         current_last_tweet = \
             api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
         if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
-            config["last_tweet_id"] = current_last_tweet.id_str
-            last_tweet = config["last_tweet_id"]
             with open("config.json", "w") as outfile:
                 json.dump(config, outfile)
                 outfile.close()
@@ -121,6 +127,7 @@ async def on_ready():
                     await asyncio.gather(send_to_one(current_last_tweet.full_text))
             else:
                 await asyncio.gather(chart_found(current_last_tweet))
+            last_tweet = set_last_tweet_id(current_last_tweet.id_str)
         time.sleep(10)
 
 
