@@ -70,7 +70,7 @@ def get_last_tweet_id():
                           host="ec2-44-194-112-166.compute-1.amazonaws.com", port=5432)
     cur = db.cursor()
     cur.execute("SELECT * FROM public.last_tweet;")
-    return cur.fetchone[0]
+    return cur.fetchone()[0]
 
 
 def set_last_tweet_id(tweet_id):
