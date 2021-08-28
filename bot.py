@@ -126,7 +126,7 @@ async def on_ready():
             else:
                 await asyncio.gather(chart_found(current_last_tweet))
             await asyncio.gather(set_last_tweet_id(current_last_tweet.id_str))
-            last_tweet = (await asyncio.gather(get_last_tweet_id()))[0]
+        last_tweet = (await asyncio.gather(get_last_tweet_id()))[0]
         time.sleep(10)
 
 
