@@ -49,22 +49,25 @@ def alert_found(text):
     return discord.Embed(color=0x5aabe8, description=f"🔔 **ALERT - **{text}")
 
 
-async def send_to_alert(embed):
+async def send_to_alert(embed, tweet_id):
     await client.get_channel(alert_channel_id).send(content="@everyone", embed=embed)
+    print(f"Sent tweet {tweet_id} to alert channel")
     return
 
 
-async def send_to_all(embed):
+async def send_to_all(embed, tweet_id):
     await client.get_channel(all_channel_id).send(content="@everyone", embed=embed)
+    print(f"Sent tweet {tweet_id} to all channel")
     return
 
 
-async def send_to_one(text):
+async def send_to_one(text, tweet_id):
     await client.get_channel(all_channel_id).send(content=f"@everyone\n{text}")
+    print(f"Sent tweet {tweet_id} to all channel")
     return
 
 
-def get_last_tweet_id():
+async def get_last_tweet_id():
     db = psycopg2.connect(database="d9d007debv37l9", user="mnfhmnmwqklmna",
                           password="807464a720386343baf66c7fb867987a2b79b587f0bd141209e762ea9171ede2",
                           host="ec2-44-194-112-166.compute-1.amazonaws.com", port=5432)
@@ -73,7 +76,7 @@ def get_last_tweet_id():
     return cur.fetchone()[0]
 
 
-def set_last_tweet_id(tweet_id):
+async def set_last_tweet_id(tweet_id):
     db = psycopg2.connect(database="d9d007debv37l9", user="mnfhmnmwqklmna",
                           password="807464a720386343baf66c7fb867987a2b79b587f0bd141209e762ea9171ede2",
                           host="ec2-44-194-112-166.compute-1.amazonaws.com", port=5432)
@@ -82,8 +85,6 @@ def set_last_tweet_id(tweet_id):
     db.commit()
     cur.close()
     db.close()
-    rtn = get_last_tweet_id()
-    return rtn
 
 
 async def chart_found(current_last_tweet):
@@ -109,25 +110,23 @@ async def on_ready():
     print('Logged in as ' + client.user.name)
     print("Starting to fetch the last tweet from the " + USER_TO_SNITCH + " account")
 
-    last_tweet = get_last_tweet_id()
+    last_tweet = (await asyncio.gather(get_last_tweet_id()))[0]
 
     while True:
         current_last_tweet = \
             api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
         if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
-            with open("config.json", "w") as outfile:
-                json.dump(config, outfile)
-                outfile.close()
             text = current_last_tweet.full_text
             if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
                 if "#alert" in text or "#Alert" in text or "#ALERT" in text:
                     embed = alert_found(text)
-                    await asyncio.gather(send_to_alert(embed), send_to_all(embed))
+                    await asyncio.gather(send_to_alert(embed, int(current_last_tweet.id_str)), send_to_all(embed, int(current_last_tweet.id_str)))
                 else:
-                    await asyncio.gather(send_to_one(current_last_tweet.full_text))
+                    await asyncio.gather(send_to_one(current_last_tweet.full_text, int(current_last_tweet.id_str)))
             else:
                 await asyncio.gather(chart_found(current_last_tweet))
-            last_tweet = set_last_tweet_id(current_last_tweet.id_str)
+            await asyncio.gather(set_last_tweet_id(current_last_tweet.id_str))
+            last_tweet = (await asyncio.gather(get_last_tweet_id()))[0]
         time.sleep(10)
 
 
