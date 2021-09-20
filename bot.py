@@ -4,8 +4,8 @@ import tweepy
 import os
 import discord
 import asyncio
-import time
 import psycopg2
+from discord.ext import tasks
 
 if not os.path.isfile("config.json"):
     sys.exit("'config.json' not found! Add it and try again.")
@@ -29,6 +29,34 @@ api = tweepy.API(auth, wait_on_rate_limit=True)
 user = api.get_user(screen_name=USER_TO_SNITCH)
 
 client = discord.Client()
+
+
+@tasks.loop(seconds=10)
+async def fetch():
+    last_tweet = (await asyncio.gather(get_last_tweet_id()))[0]
+    current_last_tweet = \
+        api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
+    if (int(current_last_tweet.id_str) > int(last_tweet)) and (
+            not current_last_tweet.full_text.startswith('RT')):
+        text = current_last_tweet.full_text
+        if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
+            if "#alert" in text or "#Alert" in text or "#ALERT" in text:
+                embed = alert_found(text)
+                await asyncio.gather(send_to_alert(embed, int(current_last_tweet.id_str)),
+                                     send_to_all(embed, int(current_last_tweet.id_str)))
+            else:
+                await asyncio.gather(send_to_one(current_last_tweet.full_text, int(current_last_tweet.id_str)))
+        else:
+            await asyncio.gather(chart_found(current_last_tweet))
+        await asyncio.gather(set_last_tweet_id(current_last_tweet.id_str))
+
+
+@client.event
+async def on_ready():
+    if not fetch.is_running():
+        fetch.start()
+    print('Logged in as ' + client.user.name)
+    print("Starting to fetch the last tweet from the " + USER_TO_SNITCH + " account")
 
 
 def alert_found(text):
@@ -103,31 +131,6 @@ async def chart_found(current_last_tweet):
     media_embed = discord.Embed(color=0xffd500, description=f"**{text}**").set_image(url=media_link)
     await client.get_channel(charts_channel_id).send(content="@everyone", embed=media_embed)
     return
-
-
-@client.event
-async def on_ready():
-    print('Logged in as ' + client.user.name)
-    print("Starting to fetch the last tweet from the " + USER_TO_SNITCH + " account")
-
-    last_tweet = (await asyncio.gather(get_last_tweet_id()))[0]
-
-    while True:
-        current_last_tweet = \
-            api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
-        if (int(current_last_tweet.id_str) > int(last_tweet)) and (not current_last_tweet.full_text.startswith('RT')):
-            text = current_last_tweet.full_text
-            if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
-                if "#alert" in text or "#Alert" in text or "#ALERT" in text:
-                    embed = alert_found(text)
-                    await asyncio.gather(send_to_alert(embed, int(current_last_tweet.id_str)), send_to_all(embed, int(current_last_tweet.id_str)))
-                else:
-                    await asyncio.gather(send_to_one(current_last_tweet.full_text, int(current_last_tweet.id_str)))
-            else:
-                await asyncio.gather(chart_found(current_last_tweet))
-            await asyncio.gather(set_last_tweet_id(current_last_tweet.id_str))
-        last_tweet = (await asyncio.gather(get_last_tweet_id()))[0]
-        time.sleep(10)
 
 
 client.run(DISCORD_BOT_TOKEN)
