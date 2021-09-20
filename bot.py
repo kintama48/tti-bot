@@ -31,7 +31,7 @@ user = api.get_user(screen_name=USER_TO_SNITCH)
 client = discord.Client()
 
 
-@tasks.loop(seconds=10)
+@tasks.loop(seconds=5)
 async def fetch():
     last_tweet = (await asyncio.gather(get_last_tweet_id()))[0]
     current_last_tweet = \
