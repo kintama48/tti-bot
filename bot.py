@@ -38,6 +38,7 @@ async def fetch():
         api.user_timeline(screen_name=USER_TO_SNITCH, count=1, include_rts=False, tweet_mode='extended')[0]
     if (int(current_last_tweet.id_str) > int(last_tweet)) and (
             not current_last_tweet.full_text.startswith('RT')):
+        await asyncio.gather(set_last_tweet_id(current_last_tweet.id_str))
         text = current_last_tweet.full_text
         if "#chart" not in text and "#CHART" not in text and "#Chart" not in text:
             if "#alert" in text or "#Alert" in text or "#ALERT" in text:
@@ -48,7 +49,7 @@ async def fetch():
                 await asyncio.gather(send_to_one(current_last_tweet.full_text, int(current_last_tweet.id_str)))
         else:
             await asyncio.gather(chart_found(current_last_tweet))
-        await asyncio.gather(set_last_tweet_id(current_last_tweet.id_str))
+        
 
 
 @client.event
