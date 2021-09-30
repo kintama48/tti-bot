@@ -56,10 +56,16 @@ async def fetch():
 async def on_ready():
     if not fetch.is_running():
         fetch.start()
+    if not status_task.is_running():
+        status_task.start()
     print('Logged in as ' + client.user.name)
     print("Starting to fetch the last tweet from the " + USER_TO_SNITCH + " account")
 
-
+@tasks.loop(minutes=1.0)
+async def status_task():    # to set a game's status
+    statuses = ["with you!", "with Twitter API!", "with humans!"]
+    await bot.change_presence(activity=discord.Game(random.choice(statuses)))
+ 
 def alert_found(text):
     text = text.replace("#alert", "").strip()
     text = text.replace("#Alert", "").strip()
